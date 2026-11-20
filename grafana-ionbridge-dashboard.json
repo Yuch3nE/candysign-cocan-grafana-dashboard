@@ -33,11 +33,24 @@
   "liveNow": false,
   "panels": [
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 18,
+      "panels": [],
+      "title": "◎ 实时概览",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "IonBridge 固件定义端口电流单位为 mA、电压单位为 mV；功率计算公式为 V(mV) × I(mA) / 1,000,000。",
+      "description": "在所选时段结束时刻查询各端口的 USB 输出功率并加总。功率由电压（mV）乘电流（mA）后除以 1,000,000 得出。",
       "fieldConfig": {
         "defaults": {
           "decimals": 2,
@@ -45,7 +58,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               },
               {
@@ -58,7 +71,8 @@
               }
             ]
           },
-          "unit": "watt"
+          "unit": "watt",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -66,7 +80,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 0
+        "y": 1
       },
       "id": 1,
       "options": {
@@ -122,7 +136,8 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -130,7 +145,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 0
+        "y": 1
       },
       "id": 2,
       "options": {
@@ -159,7 +174,8 @@
         }
       ],
       "title": "🧠 CPU 忙碌",
-      "type": "stat"
+      "type": "stat",
+      "description": "取所选时段结束时刻的 CPU 忙碌比例，以 100% 减去 IDLE 任务的 CPU 占用计算。"
     },
     {
       "datasource": {
@@ -210,11 +226,12 @@
                 "value": null
               },
               {
-                "color": "green",
+                "color": "blue",
                 "value": 1
               }
             ]
-          }
+          },
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -222,7 +239,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 0
+        "y": 1
       },
       "id": 3,
       "options": {
@@ -243,13 +260,14 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(ionbridge_port_current{instance=~\"$instance\"} > bool 0)",
+          "expr": "sum((ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"} / 1000000) > bool 0.01)",
           "instant": true,
           "legendFormat": "充电端口",
           "range": false,
           "refId": "A"
         }
       ],
+      "description": "统计所选时段结束时刻输出功率大于 0.01 W 的端口。",
       "title": "🔌 活跃充电口",
       "type": "stat"
     },
@@ -265,7 +283,8 @@
             "mode": "fixed"
           },
           "decimals": 0,
-          "unit": "s"
+          "unit": "s",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -273,7 +292,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 0
+        "y": 1
       },
       "id": 4,
       "options": {
@@ -302,36 +321,33 @@
         }
       ],
       "title": "⏱ 运行时间",
-      "type": "stat"
+      "type": "stat",
+      "description": "显示所选时段结束时刻设备自启动以来的运行时间。"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
+      "description": "按所选时段结束时刻的 Wi-Fi 信号强度点亮信号格。两格、三格、四格的阈值分别为 −80、−65、−55 dBm。无样本时信号格熄灭，精确读数见信号强度趋势。",
       "fieldConfig": {
         "defaults": {
-          "decimals": 0,
-          "max": -20,
-          "min": -100,
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "#3B554B",
                 "value": null
               },
               {
-                "color": "orange",
-                "value": -80
-              },
-              {
-                "color": "green",
-                "value": -65
+                "color": "#8BE0B6",
+                "value": 1
               }
             ]
-          },
-          "unit": "dBm"
+          }
         },
         "overrides": []
       },
@@ -339,36 +355,150 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 0
+        "y": 1
       },
       "id": 5,
       "options": {
-        "colorMode": "background_solid",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value"
+        "inlineEditing": false,
+        "panZoom": false,
+        "infinitePan": false,
+        "showAdvancedTypes": false,
+        "root": {
+          "type": "frame",
+          "name": "Wi-Fi 信号卡",
+          "background": {
+            "color": {
+              "fixed": "#21352E"
+            }
+          },
+          "constraint": {
+            "horizontal": "left",
+            "vertical": "top"
+          },
+          "placement": {
+            "left": 0,
+            "top": 0,
+            "width": 244,
+            "height": 104,
+            "rotation": 0
+          },
+          "elements": [
+            {
+              "type": "rectangle",
+              "name": "信号格 1",
+              "background": {
+                "color": {
+                  "field": "信号格 1",
+                  "fixed": "#3B554B"
+                }
+              },
+              "border": {
+                "radius": 4,
+                "width": 0
+              },
+              "constraint": {
+                "horizontal": "center",
+                "vertical": "center"
+              },
+              "placement": {
+                "left": 33,
+                "top": -17,
+                "width": 14,
+                "height": 12,
+                "rotation": 0
+              }
+            },
+            {
+              "type": "rectangle",
+              "name": "信号格 2",
+              "background": {
+                "color": {
+                  "field": "信号格 2",
+                  "fixed": "#3B554B"
+                }
+              },
+              "border": {
+                "radius": 4,
+                "width": 0
+              },
+              "constraint": {
+                "horizontal": "center",
+                "vertical": "center"
+              },
+              "placement": {
+                "left": 11,
+                "top": -12,
+                "width": 14,
+                "height": 22,
+                "rotation": 0
+              }
+            },
+            {
+              "type": "rectangle",
+              "name": "信号格 3",
+              "background": {
+                "color": {
+                  "field": "信号格 3",
+                  "fixed": "#3B554B"
+                }
+              },
+              "border": {
+                "radius": 4,
+                "width": 0
+              },
+              "constraint": {
+                "horizontal": "center",
+                "vertical": "center"
+              },
+              "placement": {
+                "left": -11,
+                "top": -6,
+                "width": 14,
+                "height": 34,
+                "rotation": 0
+              }
+            },
+            {
+              "type": "rectangle",
+              "name": "信号格 4",
+              "background": {
+                "color": {
+                  "field": "信号格 4",
+                  "fixed": "#3B554B"
+                }
+              },
+              "border": {
+                "radius": 4,
+                "width": 0
+              },
+              "constraint": {
+                "horizontal": "center",
+                "vertical": "center"
+              },
+              "placement": {
+                "left": -33,
+                "top": 0,
+                "width": 14,
+                "height": 46,
+                "rotation": 0
+              }
+            }
+          ]
+        }
       },
       "pluginVersion": "11.0.0",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "ionbridge_wifi_signal{instance=~\"$instance\"}",
+          "expr": "(\n  label_replace(vector(-128), \"bar\", \"1\", \"__name__\", \".*\")\n  or label_replace(vector(-80), \"bar\", \"2\", \"__name__\", \".*\")\n  or label_replace(vector(-65), \"bar\", \"3\", \"__name__\", \".*\")\n  or label_replace(vector(-55), \"bar\", \"4\", \"__name__\", \".*\")\n)\n<= bool scalar(\n  max by (instance) (\n    ionbridge_wifi_signal{instance=~\"$instance\"}\n    and topk by (instance) (1, timestamp(ionbridge_wifi_signal{instance=~\"$instance\"}))\n  )\n)",
           "instant": true,
-          "legendFormat": "{{ssid}} / 信道{{channel}}",
+          "legendFormat": "信号格 {{bar}}",
           "range": false,
           "refId": "A"
         }
       ],
-      "title": "📶 Wi‑Fi 信号",
-      "type": "stat"
+      "title": "📶 Wi-Fi 信号",
+      "type": "canvas"
     },
     {
       "datasource": {
@@ -395,7 +525,8 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "bytes",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -403,7 +534,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 0
+        "y": 1
       },
       "id": 6,
       "options": {
@@ -432,17 +563,34 @@
         }
       ],
       "title": "💾 可用堆内存",
-      "type": "stat"
+      "type": "stat",
+      "description": "显示所选时段结束时刻的可用堆内存。"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 19,
+      "panels": [],
+      "title": "⊞ 端口监控",
+      "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "端口 ID 从 0 开始：0=A、1=C1、2=C2、3=C3、4=C4。",
+      "description": "显示各端口的输出功率与合计功率。小电拼 CP-02S 的端口 ID 从 0 开始，分别对应 A、C1、C2、C3、C4。",
       "fieldConfig": {
         "defaults": {
           "decimals": 2,
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
@@ -450,24 +598,24 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 24,
-            "gradientMode": "opacity",
+            "fillOpacity": 0,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "smooth",
+            "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -475,23 +623,43 @@
           },
           "unit": "watt"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "总功率"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "gray",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [8, 6],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 14,
         "x": 0,
-        "y": 4
+        "y": 6
       },
       "id": 7,
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
@@ -507,10 +675,326 @@
           "legendFormat": "端口 {{id}}",
           "range": true,
           "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "expr": "sum(ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"}) / 1000000",
+          "legendFormat": "总功率",
+          "range": true,
+          "refId": "B"
         }
       ],
-      "title": "⚡ 端口功率",
+      "title": "⚡ 总功率与端口功率",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "显示所选时段结束时刻的端口协议和输出功率。0 W 表示采到了零输出，「无数据」表示查询未返回该项。",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "端口"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "0 · A"
+                      },
+                      "1": {
+                        "text": "1 · C1"
+                      },
+                      "2": {
+                        "text": "2 · C2"
+                      },
+                      "3": {
+                        "text": "3 · C3"
+                      },
+                      "4": {
+                        "text": "4 · C4"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "充电协议"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "green",
+                        "text": "USB 基础充电 5V（无快充协议）"
+                      },
+                      "1": {
+                        "color": "orange",
+                        "text": "高通 Quick Charge 2.0（QC2）"
+                      },
+                      "2": {
+                        "color": "orange",
+                        "text": "高通 Quick Charge 3.0（QC3）"
+                      },
+                      "3": {
+                        "color": "orange",
+                        "text": "高通 Quick Charge 3+（QC3+）"
+                      },
+                      "4": {
+                        "color": "blue",
+                        "text": "展锐快速充电协议（SFCP）"
+                      },
+                      "5": {
+                        "color": "yellow",
+                        "text": "三星自适应快速充电（AFC）"
+                      },
+                      "6": {
+                        "color": "green",
+                        "text": "华为快速充电协议（FCP）"
+                      },
+                      "7": {
+                        "color": "green",
+                        "text": "华为超级快充协议（SCP）"
+                      },
+                      "8": {
+                        "color": "blue",
+                        "text": "OPPO VOOC 闪充 1.0"
+                      },
+                      "9": {
+                        "color": "blue",
+                        "text": "OPPO VOOC 闪充 4.0"
+                      },
+                      "10": {
+                        "color": "blue",
+                        "text": "OPPO SuperVOOC 超级闪充 2.0"
+                      },
+                      "11": {
+                        "color": "yellow",
+                        "text": "传音快速充电协议（TFCP）"
+                      },
+                      "12": {
+                        "color": "purple",
+                        "text": "融合快速充电标准（UFCS）"
+                      },
+                      "13": {
+                        "color": "orange",
+                        "text": "联发科 Pump Express 1.0（PE1.0）"
+                      },
+                      "14": {
+                        "color": "orange",
+                        "text": "联发科 Pump Express 2.0（PE2.0）"
+                      },
+                      "15": {
+                        "color": "blue",
+                        "text": "USB Power Delivery 固定 5V（PD）"
+                      },
+                      "16": {
+                        "color": "blue",
+                        "text": "USB Power Delivery 固定高压（PD HV）"
+                      },
+                      "17": {
+                        "color": "purple",
+                        "text": "USB PD 标准功率范围可调电压（SPR AVS）"
+                      },
+                      "18": {
+                        "color": "purple",
+                        "text": "USB PD 可编程电源（PPS）"
+                      },
+                      "19": {
+                        "color": "purple",
+                        "text": "USB PD 扩展功率范围高压（EPR HV）"
+                      },
+                      "20": {
+                        "color": "purple",
+                        "text": "USB PD 可调电压电源（AVS）"
+                      },
+                      "21": {
+                        "color": "orange",
+                        "text": "小米澎湃秒充（HyperCharge）"
+                      },
+                      "255": {
+                        "color": "gray",
+                        "text": "未连接或未充电"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "noValue",
+                "value": "无数据"
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "applyToRow": true,
+                  "mode": "basic",
+                  "type": "color-background",
+                  "wrapText": true
+                }
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "当前功率"
+              },
+              {
+                "id": "unit",
+                "value": "watt"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "noValue",
+                "value": "无数据"
+              },
+              {
+                "id": "custom.align",
+                "value": "right"
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Time.*$/"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 10,
+        "x": 14,
+        "y": 6
+      },
+      "id": 10,
+      "options": {
+        "cellHeight": "md",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "max by (id) (ionbridge_port_fc_protocol{instance=~\"$instance\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "expr": "max by (id) (ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"} / 1000000)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "B"
+        }
+      ],
+      "title": "🔌 端口状态",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "id",
+            "mode": "outerTabular"
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "desc": false,
+                "field": "id"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": {
@@ -520,6 +1004,9 @@
       "fieldConfig": {
         "defaults": {
           "decimals": 3,
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
@@ -527,21 +1014,21 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 8,
-            "gradientMode": "opacity",
+            "fillOpacity": 0,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "smooth",
+            "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -558,18 +1045,14 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 15
       },
       "id": 8,
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull",
-            "min",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
@@ -598,6 +1081,9 @@
       "fieldConfig": {
         "defaults": {
           "decimals": 3,
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
@@ -605,21 +1091,21 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 14,
-            "gradientMode": "opacity",
+            "fillOpacity": 0,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "smooth",
+            "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -636,18 +1122,14 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 15
       },
       "id": 9,
       "options": {
         "legend": {
-          "calcs": [
-            "lastNotNull",
-            "min",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
@@ -669,299 +1151,312 @@
       "type": "timeseries"
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 20,
+      "panels": [],
+      "title": "▥ 用电统计",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "每行显示端口、当前充电协议和瞬时输出功率。协议已根据 IonBridge 固件和设备 2.1.8 实测核对；功率按 V(mV) × I(mA) / 1,000,000 计算。",
+      "description": "按所选时段内每 15 秒可计算的端口功率估算 USB 输出电量。结合下方采样覆盖率判断缺失数据的影响。",
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "#7EB26D",
-                  "text": "USB 基础充电 5V（无快充协议）"
-                },
-                "1": {
-                  "color": "#EAB839",
-                  "text": "高通 Quick Charge 2.0（QC2）"
-                },
-                "2": {
-                  "color": "#EF843C",
-                  "text": "高通 Quick Charge 3.0（QC3）"
-                },
-                "3": {
-                  "color": "#E24D42",
-                  "text": "高通 Quick Charge 3+（QC3+）"
-                },
-                "4": {
-                  "color": "#6ED0E0",
-                  "text": "展锐快速充电协议（SFCP）"
-                },
-                "5": {
-                  "color": "#F2CC0C",
-                  "text": "三星自适应快速充电（AFC）"
-                },
-                "6": {
-                  "color": "#1F78C1",
-                  "text": "华为快速充电协议（FCP）"
-                },
-                "7": {
-                  "color": "#447EBC",
-                  "text": "华为超级快充协议（SCP）"
-                },
-                "8": {
-                  "color": "#508642",
-                  "text": "OPPO VOOC 闪充 1.0"
-                },
-                "9": {
-                  "color": "#56A64B",
-                  "text": "OPPO VOOC 闪充 4.0"
-                },
-                "10": {
-                  "color": "#2F9E44",
-                  "text": "OPPO SuperVOOC 超级闪充 2.0"
-                },
-                "11": {
-                  "color": "#C15C17",
-                  "text": "传音快速充电协议（TFCP）"
-                },
-                "12": {
-                  "color": "#BA43A9",
-                  "text": "融合快速充电标准（UFCS）"
-                },
-                "13": {
-                  "color": "#CCA300",
-                  "text": "联发科 Pump Express 1.0（PE1.0）"
-                },
-                "14": {
-                  "color": "#FFB357",
-                  "text": "联发科 Pump Express 2.0（PE2.0）"
-                },
-                "15": {
-                  "color": "#0A437C",
-                  "text": "USB Power Delivery 固定 5V（PD）"
-                },
-                "16": {
-                  "color": "#3274D9",
-                  "text": "USB Power Delivery 固定高压（PD HV）"
-                },
-                "17": {
-                  "color": "#705DA0",
-                  "text": "USB PD 标准功率范围可调电压（SPR AVS）"
-                },
-                "18": {
-                  "color": "#6D1F62",
-                  "text": "USB PD 可编程电源（PPS）"
-                },
-                "19": {
-                  "color": "#890F02",
-                  "text": "USB PD 扩展功率范围高压（EPR HV）"
-                },
-                "20": {
-                  "color": "#584477",
-                  "text": "USB PD 可调电压电源（AVS）"
-                },
-                "21": {
-                  "color": "#FF6900",
-                  "text": "小米澎湃秒充（HyperCharge）"
-                },
-                "255": {
-                  "color": "#808080",
-                  "text": "未连接或未充电"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "gray",
-                "value": null
-              }
-            ]
-          }
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "decimals": 2,
+          "unit": "suffix: Wh",
+          "noValue": "—"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "id"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "端口"
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "0": {
-                        "text": "A"
-                      },
-                      "1": {
-                        "text": "C1"
-                      },
-                      "2": {
-                        "text": "C2"
-                      },
-                      "3": {
-                        "text": "C3"
-                      },
-                      "4": {
-                        "text": "C4"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ]
-              },
-              {
-                "id": "custom.align",
-                "value": "center"
-              },
-              {
-                "id": "custom.width",
-                "value": 90
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #A"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "充电协议"
-              },
-              {
-                "id": "custom.align",
-                "value": "left"
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "applyToRow": true,
-                  "mode": "basic",
-                  "type": "color-background",
-                  "wrapText": false
-                }
-              },
-              {
-                "id": "custom.minWidth",
-                "value": 280
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #B"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "当前功率"
-              },
-              {
-                "id": "mappings",
-                "value": []
-              },
-              {
-                "id": "unit",
-                "value": "watt"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "noValue",
-                "value": "-"
-              },
-              {
-                "id": "custom.align",
-                "value": "right"
-              },
-              {
-                "id": "custom.width",
-                "value": 130
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": "/^Time.*$/"
-            },
-            "properties": [
-              {
-                "id": "custom.hidden",
-                "value": true
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 10,
-        "x": 14,
-        "y": 4
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 24
       },
-      "id": 10,
+      "id": 15,
       "options": {
-        "cellHeight": "lg",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
           ],
-          "show": false
+          "fields": "",
+          "values": false
         },
-        "showHeader": false,
-        "sortBy": []
+        "textMode": "value"
       },
       "pluginVersion": "11.0.0",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "max by (id) (ionbridge_port_fc_protocol{instance=~\"$instance\"})",
-          "format": "table",
+          "expr": "sum(sum_over_time((ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"} / 1000000)[$__range:15s])) * 15 / 3600",
           "instant": true,
-          "legendFormat": "__auto",
+          "legendFormat": "累计用电量",
           "range": false,
           "refId": "A"
-        },
-        {
-          "editorMode": "code",
-          "expr": "max by (id) (ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"} / 1000000) > 0.01",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "B"
         }
       ],
-      "title": "🔌 端口状态",
+      "title": "🔋 USB 输出电量（估算）",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "按 15 秒步进计算各端口可用功率点的比例，显示所选时段内有电压、电流或协议记录的端口中的最低比例。该值反映电量积分的可用数据。没有端口数据时显示「—」。",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "min": 0,
+          "max": 1,
+          "noValue": "—",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "green",
+                "value": 0.95
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 28
+      },
+      "id": 22,
+      "options": {
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "min(\n  count_over_time((ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"} / 1000000)[$__range:15s])\n  or on (instance, id)\n  (0 * group by (instance, id) (\n      present_over_time(ionbridge_port_voltage{instance=~\"$instance\"}[$__range])\n      or present_over_time(ionbridge_port_current{instance=~\"$instance\"}[$__range])\n      or present_over_time(ionbridge_port_fc_protocol{instance=~\"$instance\"}[$__range])\n  ))\n)\n/\nscalar(count_over_time(vector(1)[$__range:15s]))",
+          "instant": true,
+          "legendFormat": "最低端口覆盖率",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "📋 电量采样覆盖率",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "每柱的右端为窗口结束时间，柱高为此前 1 小时的 USB 输出电量估算。首柱可能包含所选起点之前的数据，长时间范围可能跳过部分小时。",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": -1,
+            "drawStyle": "bars",
+            "fillOpacity": 75,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 0,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "min": 0,
+          "unit": "suffix: Wh"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 11,
+        "x": 5,
+        "y": 24
+      },
+      "id": 16,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum(sum_over_time((ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"} / 1000000)[1h:15s])) * 15 / 3600",
+          "interval": "1h",
+          "legendFormat": "每小时用电量",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "📊 每小时输出电量",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "按所选时段内每 15 秒可计算的端口功率估算输出电量，按动态返回的端口名称排列。",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "decimals": 2,
+          "min": 0,
+          "unit": "suffix: Wh"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 24
+      },
+      "id": 17,
+      "options": {
+        "displayMode": "basic",
+        "maxVizHeight": 36,
+        "minVizHeight": 18,
+        "minVizWidth": 8,
+        "namePlacement": "left",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showUnfilled": true,
+        "sizing": "manual",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 12
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum_over_time((ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"} / 1000000)[$__range:15s]) * 15 / 3600",
+          "instant": true,
+          "legendFormat": "端口 {{id}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
       "transformations": [
         {
-          "id": "joinByField",
+          "id": "seriesToRows",
+          "options": {}
+        },
+        {
+          "id": "sortBy",
           "options": {
-            "byField": "id",
-            "mode": "outer"
+            "sort": [
+              {
+                "desc": false,
+                "field": "Metric"
+              }
+            ]
           }
         }
       ],
-      "type": "table"
+      "title": "🔌 端口用电量",
+      "type": "bargauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "id": 21,
+      "panels": [],
+      "title": "⚙︎ 系统诊断",
+      "type": "row"
     },
     {
       "datasource": {
@@ -995,18 +1490,18 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 8,
+        "h": 11,
+        "w": 12,
         "x": 0,
-        "y": 28
+        "y": 33
       },
       "id": 12,
       "options": {
-        "displayMode": "gradient",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
+        "displayMode": "basic",
+        "maxVizHeight": 24,
+        "minVizHeight": 18,
         "minVizWidth": 8,
-        "namePlacement": "auto",
+        "namePlacement": "left",
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -1016,8 +1511,11 @@
           "values": false
         },
         "showUnfilled": true,
-        "sizing": "auto",
-        "text": {}
+        "sizing": "manual",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 12
+        }
       },
       "pluginVersion": "11.0.0",
       "targets": [
@@ -1030,8 +1528,9 @@
           "refId": "A"
         }
       ],
-      "title": "🧠 任务 CPU Top 10",
-      "type": "bargauge"
+      "title": "🧠 任务 CPU 占用 · 前 10",
+      "type": "bargauge",
+      "description": "按所选时段结束时刻查询的任务 CPU 占用取前 10 项，排除 IDLE 任务。"
     },
     {
       "datasource": {
@@ -1065,18 +1564,18 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 28
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 33
       },
       "id": 13,
       "options": {
-        "displayMode": "gradient",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
+        "displayMode": "basic",
+        "maxVizHeight": 24,
+        "minVizHeight": 18,
         "minVizWidth": 8,
-        "namePlacement": "auto",
+        "namePlacement": "left",
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -1086,8 +1585,11 @@
           "values": false
         },
         "showUnfilled": true,
-        "sizing": "auto",
-        "text": {}
+        "sizing": "manual",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 12
+        }
       },
       "pluginVersion": "11.0.0",
       "targets": [
@@ -1100,8 +1602,9 @@
           "refId": "A"
         }
       ],
-      "title": "📚 栈余量最低 Top 10",
-      "type": "bargauge"
+      "title": "📚 任务栈余量 · 最低 10",
+      "type": "bargauge",
+      "description": "按所选时段结束时刻上报的任务栈低水位，显示剩余量最低的 10 项。"
     },
     {
       "datasource": {
@@ -1118,21 +1621,21 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 22,
+            "fillOpacity": 12,
             "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "smooth",
+            "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1141,15 +1644,19 @@
               "mode": "off"
             }
           },
-          "unit": "bytes"
+          "unit": "bytes",
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 28
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 44
       },
       "id": 14,
       "options": {
@@ -1182,81 +1689,25 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "按所选时间范围内的平均功率积分估算。1 kWh 等于 1 度电；采集缺口会影响结果。",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "fixedColor": "blue",
-            "mode": "fixed"
-          },
-          "decimals": 4,
-          "unit": "kwatth"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 20
-      },
-      "id": 15,
-      "options": {
-        "colorMode": "background_solid",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value"
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "editorMode": "code",
-          "expr": "avg_over_time((sum by (instance) (ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"}) / 1000000)[$__range:$__interval]) * $__range_s / 3600000",
-          "instant": true,
-          "legendFormat": "累计用电量",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "🔋 所选时段用电量",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "description": "每个柱子表示前 1 小时的估算用电量，查询步长固定为 1 小时。",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "blue",
-            "mode": "fixed"
-          },
+          "decimals": 0,
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "bars",
-            "fillOpacity": 85,
-            "gradientMode": "opacity",
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
             "lineInterpolation": "linear",
-            "lineWidth": 0,
+            "lineWidth": 2,
             "pointSize": 4,
             "scaleDistribution": {
               "type": "linear"
@@ -1271,18 +1722,21 @@
               "mode": "off"
             }
           },
-          "decimals": 4,
-          "unit": "kwatth"
+          "unit": "suffix: dBm",
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
-        "x": 6,
-        "y": 20
+        "x": 12,
+        "y": 44
       },
-      "id": 16,
+      "id": 23,
       "options": {
         "legend": {
           "calcs": [],
@@ -1299,97 +1753,15 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "avg_over_time((sum by (instance) (ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"}) / 1000000)[1h:1m]) / 1000",
-          "interval": "1h",
-          "legendFormat": "每小时用电量",
+          "expr": "max by (instance) (\n  ionbridge_wifi_signal{instance=~\"$instance\"}\n  and topk by (instance) (1, timestamp(ionbridge_wifi_signal{instance=~\"$instance\"}))\n)",
+          "legendFormat": "信号强度",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "📊 每小时用电量",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "description": "按端口分别对采样功率积分，便于比较所选时间范围内各端口的用电量。",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "decimals": 4,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "kwatth"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 18,
-        "y": 20
-      },
-      "id": 17,
-      "options": {
-        "displayMode": "gradient",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": true
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "text": {}
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "editorMode": "code",
-          "expr": "avg_over_time((ionbridge_port_voltage{instance=~\"$instance\"} * ionbridge_port_current{instance=~\"$instance\"} / 1000000)[$__range:$__interval]) * $__range_s / 3600000",
-          "instant": true,
-          "legendFormat": "端口 {{id}}",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "seriesToRows",
-          "options": {}
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "sort": [
-              {
-                "desc": false,
-                "field": "Metric"
-              }
-            ]
-          }
-        }
-      ],
-      "title": "🔌 端口用电量",
-      "type": "bargauge"
+      "title": "📶 Wi-Fi 信号强度趋势",
+      "type": "timeseries",
+      "description": "显示所选时段内的 Wi-Fi 信号强度（dBm）。数值越接近 0，信号越强。"
     }
   ],
   "refresh": "10s",
@@ -1405,6 +1777,10 @@
     "list": [
       {
         "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
         "hide": 0,
         "includeAll": false,
         "label": "设备实例",
